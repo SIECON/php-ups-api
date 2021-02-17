@@ -47,8 +47,11 @@ Tracking API, Shipping API, Rating API and Time in Transit API. Feel free to con
 12. [Shipping Class](#shipping-class)
     * [Example](#shipping-class-example)
     * [Parameters](#shipping-class-parameters)
-13. [Logging](#logging)
-14. [License](#license-section)
+13. [Pickup Class](#pickup-class)
+    * [Example](#pickup-class-example)
+    * [Parameters](#pickup-class-parameters)
+14. [Logging](#logging)
+15. [License](#license-section)
 
 <a name="requirements"></a>
 ## Requirements
@@ -839,6 +842,243 @@ For the Shipping `confirm` call, the parameters are:
 For the Shipping `accept` call, the parameters are: 
 
  * $shipmentDigest The UPS Shipment Digest received from a ShipConfirm request. Required
+
+<a name="pickup-class"></a>
+## Pickup Class
+
+Using the Pickup Package RESTful API, applications can schedule pickups, manage previously scheduled pickups, or cancel previously scheduled pickups.
+
+There are 6 types of Pickup Package RESTful Requests/Responses within the API:
+
+* PickupCreation: Used to create an on-call pickup.
+* PickupRate: Used to rate an on-call pickup.
+* PickupCancel: Used to cancel the on-call pickup that was created by the Pickup Creation Request.
+* PickupStatus: Used to get the pending pickup status after the pickup is created.
+* PickupCenterFacilities: Used to retrieve UPS Facility location information including location address, phone number, SLIC, and hours of operation for pick-up and drop-off requests and only applies to UPS Worldwide Express Freight.
+* PickupPoliticalDivision1List: Used to get a list of valid Political Division 1/State field for a specific country or territory.
+
+Please note this is just an example. Your use case might demand more or less information to be sent to UPS.
+
+In the example `$return` is used to show how a return could be handled. 
+
+<a name="pickup-class-example"></a>
+### PickupCreation Example
+
+```php
+// Start pickup
+$pickupRequest = new \Ups\Entity\Pickup\PickupCreationRequest();
+
+// Create the shipper with a Shipper Account
+$shipper = new \Ups\Entity\Pickup\PickupShipper(new \Ups\Entity\Pickup\ShipperAccount('ACCOUNT_NUMBER', 'US'));
+$pickupDateInfo = new \Ups\Entity\Pickup\PickupDateInfo();
+$pickupDateInfo->setCloseTime('2000')->setReadyTime('0900')->setPickupDate('20210301');
+
+$pickupAddress = new \Ups\Entity\Pickup\PickupAddress();
+$pickupAddress->setCompanyName('XX')
+    ->setContactName('XX')
+    ->setAddressLine('XX')
+    ->setCity('XX')
+    ->setPostalCode('XX')
+    ->setCountryCode('XX')
+    ->setResidentialIndicator('X')
+    ->setPhone((new \Ups\Entity\Pickup\Phone())->setNumber('XX')->setExtension('X'));
+
+$pickupPiece = [
+    (new \Ups\Entity\Pickup\PickupPiece)->setServiceCode('004')->setQuantity('1')->setDestinationCountryCode('US')->setContainerCode(\Ups\Entity\Pickup\PickupPiece::PACKAGE)
+];
+
+$pickupRequest->setRatePickupIndicator("N")
+    ->setShipper($shipper)
+    ->setPickupDateInfo($pickupDateInfo)
+    ->setPickupAddress($pickupAddress)
+    ->setAlternateAddressIndicator('N')
+    ->setPickupPiece($pickupPiece)
+    ->setPaymentMethod(\Ups\Entity\Pickup\PaymentMethod::SHIPPER_ACCOUNT);
+
+// Schedule pickup info
+try {
+    $api = new Ups\Pickup($accessKey, $userId, $password); 
+
+    $create = $api->create($pickupRequest);
+    var_dump($create); // Confirm holds the digest you need to accept the result
+} catch (\Exception $e) {
+    var_dump($e);
+}
+```
+
+### PickupRate Example
+
+```php
+// Start rate pickup request
+$ratePickupRequest = new \Ups\Entity\Pickup\PickupRateRequest();
+// Create the shipper with a Shipper Account
+$shipper = new \Ups\Entity\Pickup\PickupShipper(new \Ups\Entity\Pickup\ShipperAccount('ACCOUNT_NUMBER', 'US'));
+
+$pickupAddress = new \Ups\Entity\Pickup\PickupAddress();
+$pickupAddress->setCompanyName('XX')
+    ->setContactName('XX')
+    ->setAddressLine('XX')
+    ->setCity('XX')
+    ->setPostalCode('XX')
+    ->setCountryCode('XX')
+    ->setResidentialIndicator('X')
+    ->setPhone((new \Ups\Entity\Pickup\Phone())->setNumber('XXXXXXXXX')->setExtension('X'));
+
+$pickupDateInfo = new \Ups\Entity\Pickup\PickupDateInfo();
+$pickupDateInfo->setCloseTime('2000')->setReadyTime('0900')->setPickupDate('20210301');
+
+$ratePickupRequest->setShipper($shipper)
+    ->setPickupAddress($pickupAddress)
+    ->setPickupDateInfo($pickupDateInfo)
+    ->setAlternateAddressIndicator('N')
+    ->setServiceDateOption(\Ups\Entity\Pickup\PickupRateRequest::FUTURE_DAY_PICKUP);
+
+// Get pickup rate
+try {
+    $api = new Ups\Pickup($accessKey, $userId, $password); 
+
+    $rate = $api->rate($ratePickupRequest);
+    var_dump($rate); // Confirm holds the digest you need to accept the result
+} catch (\Exception $e) {
+    var_dump($e);
+}
+```
+
+### PickupStatus Example
+
+```php
+// Start pickup status request
+$ratePickupRequest = new \Ups\Entity\Pickup\PickupPendingStatusRequest();
+
+$statusPickupRequest->setAccountNumber('ACCOUNT_NUMBER')
+                ->setPickupType('oncall');
+// Get pickup status
+try {
+    $api = new Ups\Pickup($accessKey, $userId, $password); 
+
+    $status = $api->rate($statusPickupRequest);
+    var_dump($status); // Confirm holds the digest you need to accept the result
+} catch (\Exception $e) {
+    var_dump($e);
+}
+```
+
+### Cancel Pickup Example
+```php
+// Start pickup status request
+$cancelPickupRequest = new \Ups\Entity\Pickup\PickupCancelRequest();
+$cancelPickupRequest->setCancelBy('prn')->setPRN('2929602E9CP');
+
+// Cancel pickup
+try {
+    $api = new Ups\Pickup($accessKey, $userId, $password); 
+
+    $cancel = $api->cancel($cancelPickupRequest);
+    var_dump($cancel); // Confirm holds the digest you need to accept the result
+} catch (\Exception $e) {
+    var_dump($e);
+}
+```
+
+
+### Cancel Pickup Example
+```php
+// Start pickup status request
+$cancelPickupRequest = new \Ups\Entity\Pickup\PickupCancelRequest();
+$cancelPickupRequest->setCancelBy('prn')->setPRN('2929602E9CP');
+
+// Cancel pickup
+try {
+    $api = new Ups\Pickup($accessKey, $userId, $password); 
+
+    $cancel = $api->cancel($cancelPickupRequest);
+    var_dump($cancel); // Confirm holds the digest you need to accept the result
+} catch (\Exception $e) {
+    var_dump($e);
+}
+```
+
+### Pickup Facilities Example
+```php
+$facilitiesRequest = new \Ups\Entity\Pickup\PickupGetServiceCenterFacilitiesRequest();
+$pickupPiece = (new \Ups\Entity\Pickup\PickupPiece)
+    ->setServiceCode('003')
+    ->setContainerCode(\Ups\Entity\Pickup\PickupPiece::PACKAGE);
+
+$locationSearchCriteria = (new \Ups\Entity\Pickup\SearchCriteria())
+    ->setMaximumLocation('5')
+    ->setDistanceUnitOfMeasure('KM')
+    ->setSearchRadius('150');
+
+$pickupAddress = new \Ups\Entity\Pickup\PickupOriginAddress();
+$pickupAddress->setOriginSearchCriteria($locationSearchCriteria)
+    ->setCompanyName('Company name')
+    ->setContactName('test name')
+    ->setAddressLine('address test line')
+    ->setCity('NY')
+    ->setPostalCode('10001')
+    ->setCountryCode('US')
+    ->setResidentialIndicator('Y')
+    ->setPhone((new \Ups\Entity\Pickup\Phone())->setNumber('000000000')->setExtension('1'));
+
+$facilitiesRequest
+    ->setPickupPiece($pickupPiece)
+    ->setProximitySearchIndicator('')
+    ->setOriginAddress($pickupAddress)
+    ->setLocale('en_HK');
+
+// Retrieve facilities
+try {
+    $api = new Ups\Pickup($accessKey, $userId, $password); 
+
+    $facilities = $api->facilities($facilitiesRequest);
+    var_dump($facilities); // Confirm holds the digest you need to accept the result
+} catch (\Exception $e) {
+    var_dump($e);
+}
+```
+
+### Pickup Political Divisions Example
+```php
+$country_code = 'HK';
+
+// Retrieve political divisions
+try {
+    $api = new Ups\Pickup($accessKey, $userId, $password); 
+
+    $politicalDivisions = $api->politicalDivisions($country_code);
+    var_dump($politicalDivisions); // Confirm holds the digest you need to accept the result
+} catch (\Exception $e) {
+    var_dump($e);
+}
+```
+
+<a name="pickup-class-parameters"></a>
+### Parameters
+
+For the Pickup `create` call, the parameters are: 
+
+ * $pickup A Ups\Entity\Pickup\PickupCreationRequest::class Required
+
+For the Pickup `rate` call, the parameters are: 
+
+ * $rate A Ups\Entity\Pickup\PickupRateRequest::class Required
+
+For the Pickup `status` call, the parameters are: 
+
+ * $status A Ups\Entity\Pickup\PickupPendingStatusRequest::class Required
+
+For the Pickup `cancel` call, the parameters are: 
+
+ * $cancel A Ups\Entity\Pickup\PickupCancelRequest::class Required
+
+For the Pickup `facilities` call, the parameters are: 
+
+ * $facilities A Ups\Entity\Pickup\PickupGetServiceCenterFacilitiesRequest::class Required
+
+For the Pickup `politicalDivisions` call, the parameters are: 
+
+ * $country_code 2 letters country code Required
 
 <a name="logging"></a>
 ## Logging
