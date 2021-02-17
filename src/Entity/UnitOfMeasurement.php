@@ -6,7 +6,7 @@ use DOMDocument;
 use DOMElement;
 use Ups\NodeInterface;
 
-class UnitOfMeasurement implements NodeInterface
+class UnitOfMeasurement extends SerializableEntity implements NodeInterface
 {
     // PackageWeight
     const UOM_LBS = 'LBS'; // Pounds (defalut)

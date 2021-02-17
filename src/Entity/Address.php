@@ -6,7 +6,7 @@ use DOMDocument;
 use DOMElement;
 use Ups\NodeInterface;
 
-class Address implements NodeInterface
+class Address extends SerializableEntity implements NodeInterface
 {
     /** @deprecated */
     public $AddressLine1;

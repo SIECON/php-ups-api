@@ -6,7 +6,7 @@ use DOMDocument;
 use DOMElement;
 use Ups\NodeInterface;
 
-class Dimensions implements NodeInterface
+class Dimensions extends SerializableEntity implements NodeInterface
 {
     /**
      * @var int

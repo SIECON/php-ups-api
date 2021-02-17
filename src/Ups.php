@@ -11,8 +11,21 @@ use stdClass;
 
 abstract class Ups implements LoggerAwareInterface
 {
-    const PRODUCTION_BASE_URL = 'https://onlinetools.ups.com/ups.app/xml';
-    const INTEGRATION_BASE_URL = 'https://wwwcie.ups.com/ups.app/xml';
+    const XML_PRODUCTION_BASE_URL = 'https://onlinetools.ups.com/ups.app/xml';
+    const XML_INTEGRATION_BASE_URL = 'https://wwwcie.ups.com/ups.app/xml';
+
+    const PRODUCTION_BASE_URL = 'https://onlinetools.ups.com';
+    const INTEGRATION_BASE_URL = 'https://wwwcie.ups.com';
+
+    /**
+     * @var bool
+     */
+    protected $useJson = false;
+
+    /**
+     * @var string
+     */
+    protected $version = 'v1';
 
     /**
      * @var string
@@ -28,20 +41,6 @@ abstract class Ups implements LoggerAwareInterface
      * @var string
      */
     protected $password;
-
-    /**
-     * @var string
-     *
-     * @deprecated
-     */
-    protected $productionBaseUrl = 'https://onlinetools.ups.com/ups.app/xml';
-
-    /**
-     * @var string
-     *
-     * @deprecated
-     */
-    protected $integrationBaseUrl = 'https://wwwcie.ups.com/ups.app/xml';
 
     /**
      * @var bool
@@ -130,6 +129,33 @@ abstract class Ups implements LoggerAwareInterface
      */
     protected function createAccess()
     {
+        if ($this->useJson) {
+            return $this->createJsonAccess();
+        } else {
+            return $this->createXMLAccess();
+        }
+    }
+    /**
+     * Create the Header for access request.
+     *
+     * @return array
+     */
+    private function createJsonAccess()
+    {
+        return [
+            'Username' => $this->userId,
+            'Password' => $this->password,
+            'AccessLicenseNumber' => $this->accessKey
+        ];
+    }
+
+    /**
+     * Create the access request.
+     *
+     * @return string
+     */
+    private function createXMLAccess()
+    {
         $xml = new DOMDocument();
         $xml->formatOutput = true;
 
@@ -139,7 +165,7 @@ abstract class Ups implements LoggerAwareInterface
 
         $accessRequest->appendChild($xml->createElement('AccessLicenseNumber', $this->accessKey));
         $accessRequest->appendChild($xml->createElement('UserId', $this->userId));
-        
+
         $p = $accessRequest->appendChild($xml->createElement('Password'));
         $p->appendChild($xml->createTextNode($this->password));
 
@@ -212,8 +238,13 @@ abstract class Ups implements LoggerAwareInterface
      */
     protected function compileEndpointUrl($segment)
     {
-        $base = ($this->useIntegration ? $this->integrationBaseUrl : $this->productionBaseUrl);
+        $base = NULL;
+        if ($this->useJson) {
+            $base = ($this->useIntegration ? self::INTEGRATION_BASE_URL : self::PRODUCTION_BASE_URL);
+        } else {
+            $base = ($this->useIntegration ? self::XML_INTEGRATION_BASE_URL : self::XML_PRODUCTION_BASE_URL);
+        }
 
-        return $base.$segment;
+        return $base . $segment;
     }
 }

@@ -5,7 +5,7 @@ namespace Ups\Entity;
 /**
  * @author Eduard Sukharev <eduard.sukharev@opensoftdev.ru>
  */
-class BillShipper
+class BillShipper extends SerializableEntity
 {
     /**
      * @var string

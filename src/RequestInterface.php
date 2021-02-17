@@ -12,13 +12,15 @@ interface RequestInterface
     public function __construct(LoggerInterface $logger = null);
 
     /**
-     * @param string $access The access request xml
-     * @param string $request The request xml
+     * @param string|array|null $access The access request 
+     * @param string $request The request body
      * @param string $endpointurl The UPS API Endpoint URL
+     * @param string $method HTTP method
+     * @param array $headers Extra headers
      *
-     * @return ResponseInterface
+     * @return ResponseInterface|JsonResponseInterface
      */
-    public function request($access, $request, $endpointurl);
+    public function request($accesses, $request, $endpointurl, $method, $headers);
 
     /**
      * @param $access
@@ -49,4 +51,24 @@ interface RequestInterface
      * @return string
      */
     public function getEndpointUrl();
+
+    /**
+     * @param $method
+     */
+    public function setMethod(string $method);
+
+    /**
+     * @return string
+     */
+    public function getMethod();
+
+    /**
+     * @param $headers
+     */
+    public function setHeaders(array $headers);
+
+    /**
+     * @return array
+     */
+    public function getHeaders();
 }

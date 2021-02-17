@@ -30,6 +30,16 @@ class RequestMock implements RequestInterface
     /**
      * @var string
      */
+    protected $method;
+
+    /**
+     * @var array
+     */
+    protected $headers;
+
+    /**
+     * @var string
+     */
     private $responsePath;
 
     /**
@@ -60,7 +70,7 @@ class RequestMock implements RequestInterface
             $args = null;
         }
 
-        $request = realpath(__DIR__.self::REQUEST_DIRECTORY.$request);
+        $request = realpath(__DIR__ . self::REQUEST_DIRECTORY . $request);
         if ($request && is_file($request)) {
             $request = file_get_contents($request);
             if (isset($args)) {
@@ -85,10 +95,12 @@ class RequestMock implements RequestInterface
      * @param string|null $access      The access request xml
      * @param string|null $request     The request xml
      * @param string|null $endpointUrl The UPS API Endpoint URL
+     * @param string|null $method method
+     * @param array|null $headers headers
      *
      * @return ResponseInterface
      */
-    public function request($access = null, $request = null, $endpointUrl = null)
+    public function request($access = null, $request = null, $endpointUrl = null, $method = null, $headers = [])
     {
         if (null !== $access) {
             $this->setAccess($access);
@@ -100,7 +112,7 @@ class RequestMock implements RequestInterface
             $this->setEndpointUrl($endpointUrl);
         }
 
-        $response = realpath(__DIR__.self::RESPONSE_DIRECTORY.$this->responsePath);
+        $response = realpath(__DIR__ . self::RESPONSE_DIRECTORY . $this->responsePath);
         if ($response && is_file($response)) {
             $response = file_get_contents($response);
             if (!empty($response)) {
@@ -175,5 +187,53 @@ class RequestMock implements RequestInterface
     public function getEndpointUrl()
     {
         return $this->endpointUrl;
+    }
+
+    /**
+     * Get the value of method
+     *
+     * @return  string
+     */ 
+    public function getMethod()
+    {
+        return $this->method;
+    }
+
+    /**
+     * Set the value of method
+     *
+     * @param  string  $method
+     *
+     * @return  self
+     */ 
+    public function setMethod(string $method)
+    {
+        $this->method = $method;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of headers
+     *
+     * @return  array
+     */ 
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
+
+    /**
+     * Set the value of headers
+     *
+     * @param  array  $headers
+     *
+     * @return  self
+     */ 
+    public function setHeaders(array $headers)
+    {
+        $this->headers = $headers;
+
+        return $this;
     }
 }

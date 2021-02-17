@@ -10,29 +10,17 @@ use Ups\Entity\Tradeability\LandedCostRequest;
 
 /**
  * Tradeability API Wrapper.
- *
+ * TODO: Implement RESTFUL JSON API
+ * 
  * @author Stefan Doorn <stefan@efectos.nl>
  */
 class Tradeability extends Ups
 {
-
     /**
      *
      */
     const ENDPOINT_LANDEDCOST = '/LandedCost';
-    /**
-     * @var string
-     *
-     * @deprecated
-     */
-    protected $productionBaseUrl = 'https://www.ups.com/webservices';
-
-    /**
-     * @var string
-     *
-     * @deprecated
-     */
-    protected $integrationBaseUrl = 'https://wwwcie.ups.com/webservices';
+  
     /**
      * @var
      */
